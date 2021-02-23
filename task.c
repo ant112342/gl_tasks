@@ -34,16 +34,16 @@ int strlen(const char *s) {
   return i;
 }
 
-int rempart(char *format) {
+int rempart(const char *format) {
   uint8_t var = 0;
   char *remove;
   int flag = 0;
 
-  for (; *format != '\0'; *format++) {
+  for (int i = 0; format[i] != '\0'; i++) {
   
     printf("%c  ", *format);
     
-    if (*format == '%') {
+    if (format[i] == '%') {
     
       printf("Yes\n");
       var = 1;
@@ -52,7 +52,7 @@ int rempart(char *format) {
     
     if (var == 1) {
     
-      switch (*format) {
+      switch (format[i]) {
       
       case 's':
         printf("string\n");
@@ -80,20 +80,20 @@ int rempart(char *format) {
   return flag;
 }
 
-int where_to_chan(char *str, char *substr) {
+int where_to_chan(const char *str,const char *substr) {
   uint8_t flag = 0;
   int start = 0;
   int i = 0, j = 0;
 
-  while (*str != '\0') {
-    if (*(str + i) == *(substr + j)) {
+  while (str[i] != '\0') {
+    if (str[i] == substr[j] ) {
     
       if (!flag)
         start = i;
       
       j++;
 
-      if (*(substr + j) == '\0')
+      if (substr[j] == '\0')
         break;
 
       flag = 1;
@@ -109,10 +109,10 @@ int where_to_chan(char *str, char *substr) {
   return start;
 }
 
-/*const char * */ void sprintf_m(const char *format, const void *value) {
-  const char *repl_string = *(char *)value;
+  const char * sprintf_m(const char *format, const void *value) {
+  const char *repl_string = (const char *)value;
   char *remstr;
-  int flag = rempart(*repl_string);
+  int flag = rempart(repl_string);
   char *buffer;
 
   switch (flag) {
@@ -129,25 +129,25 @@ int where_to_chan(char *str, char *substr) {
     printf("error\n");
   }
 
-  int d = where_to_chan(*remstr, *repl_string);
+  int d = where_to_chan(remstr, repl_string);
   int i, j;
 
   for (i = 0; i < d; i++)
-    *(buffer + i) = *(format + i);
+    buffer[i] = format[i] ;
 
   for (j = 0; j < 2; j++) {
-    *(buffer + i) = *(remstr + j);
+    buffer[i] = remstr[j];
     i++;
   }
 
   for (j = d + strlen(repl_string); j < strlen(format); j++) {
 
-    *(buffer + i) = *(format + j);
+    buffer[i] = format[j];
     
     i++;
   }
 
-  *(buffer + i) = '\0';
+  buffer[i] = '\0';
 
   return *buffer;
 }
@@ -174,5 +174,7 @@ int main(int argc, char *argv[]) {
   result = sprintf_m(formatS, (const void *)world);
   printf("%s\n", result); // should print: Hello World!
 
+int d = rempart("Hello %s!");
+printf("%d\n",d);
   return 0;
 }
