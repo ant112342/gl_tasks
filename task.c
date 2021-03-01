@@ -5,163 +5,101 @@
 // Забороняється використовувати будь-які функції стандартної бібліотеки.
 // Також будь ласка не змінюйте нічого у файлі окрім тіла функції sprintf_m().
 // Формат типу може зустрічатися декілька разів, наприклад "The ASCII code of
-// '%c' is %n", aле підставляти потрібно одне і те саме значення value. Функція
+// '%c' is %n", aле підставляти потрібно одне і те саме значення value. Функці
 // очікує коректні вхідні данні не треба робити ніяких перевірок або
 // реалізовувати escape послідовності.
 
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 
-// const char format[] - contains the format string
-// void *value - is a value to insert instead of %s, %n or %c placeholder
-// the function should return the result in C-string format.
-// format string samples: "Hello %s!", "Value :%n", "Character :%c"
-//
-// %s - C-string is passed in void *value
-// %n - 1 byte unsigned number (uint8_t) is passed in void *value
-// %c - a character is passed in void *value
+const char *sprintf_m(const char *format, const void *value) {
 
-enum flag_type {
-  char_t = 1,
-  uint_t = 2,
-  str_t = 3,
-};
+static char buff[256] = {0};
+const char *ptr = &buff[0];
+const char *v = (const char *)value;
+int i = 0, j = 0, k = 0;
+uint8_t n = 0;
+char c = '\0';
+int wher[100] = {0};
+int cnt = 0;
 
-int strlen(const char *s) {
-  int i;
-  for (i = 0; s[i] != '\0'; i++);
-  
-  return i;
-}
+	for (i = 0; format[i] != '\0'; i++);
+  	int fmt_len = i;
 
-int rempart(const char *format) {
-  uint8_t var = 0;
-  char *remove;
-  int flag = 0;
+	for (i = 0; i < fmt_len - 1; i++) {
+		if (format[i] == '%') {
+		wher[cnt] = i;
+      		// printf("%d\n",wher[cnt]);
+		if (format[i + 1] == 's') {
 
-  for (int i = 0; format[i] != '\0'; i++) {
-  
-    printf("%c  ", *format);
-    
-    if (format[i] == '%') {
-    
-      printf("Yes\n");
-      var = 1;
-      continue;
-    }
-    
-    if (var == 1) {
-    
-      switch (format[i]) {
-      
-      case 's':
-        printf("string\n");
-        var = 0;
-        flag = str_t;
-        break;
-        
-      case 'n':
-        printf("uint8\n");
-        var = 0;
-        flag = uint_t;
-        break;
-        
-      case 'c':
-        printf("char\n");
-        var = 0;
-        flag = char_t;
-        break;
-        
-      default:
-        printf("No\n");
-      }
-    }
-  }
-  return flag;
-}
+        	k = 0;
+        	if (cnt >= 1)
+          	k = wher[cnt - 1] + j;
+        	printf("k = %d\n", k);
+        	while (k < (wher[cnt] + j)) {
+          	buff[k] = format[k - j];
+          	// printf("form = %c\n",format[k]);
+          	k++;
+        	}
+        	for (j = 0; v[j] != '\0'; j++) {
+          	*(buff + wher[cnt] + j) = v[j];
+        	}
+        	cnt++;
 
-int where_to_chan(const char *str,const char *substr) {
-  uint8_t flag = 0;
-  int start = 0;
-  int i = 0, j = 0;
+        	continue;
+      		} else if (format[i + 1] == 'n') {
 
-  while (str[i] != '\0') {
-    if (str[i] == substr[j] ) {
-    
-      if (!flag)
-        start = i;
-      
-      j++;
+        	k = 0;
+        	if (cnt >= 1)
+		k = wher[cnt - 1] + j;
+        	//printf("k = %d\n", k);
+		while (k < (wher[cnt] + j)) {
+          	buff[k] = format[k - j];
+          	// printf("form = %c\n",format[k]);
+          	k++;
+        	}
+		n = *(const uint8_t *)value;
+		int hund = n / 100;
+		int dec = (n - hund * 100) / 10;
+		int val = (n - hund * 100 - dec * 10);
+		*(buff + wher[cnt] + j) = (hund + 48);
+		*(buff + wher[cnt] + 1 + j) = (dec + 48);
+		*(buff + wher[cnt] + 2 + j) = (val + 48);
+		cnt++;
+		continue;
 
-      if (substr[j] == '\0')
-        break;
-
-      flag = 1;
-
-    } else {
-
-      flag = start = j = 0;
-    }
-
-    i++;
+      		} else if (format[i + 1] == 'c') {
+        	k = 0;
+        	if (cnt >= 1)
+         	k = wher[cnt - 1];
+        	// printf("k = %d\n",k);
+        	while (k < wher[cnt]) {
+          	buff[k] = format[k];
+          	// printf("form = %c\n",format[k]);
+          	k++;
+        	}
+        	c = *(const char *)value;
+        	*(buff + wher[cnt]) = c;
+        	cnt++;
+        	continue;
+      		}
+    	}
   }
 
-  return start;
-}
-
-  const char * sprintf_m(const char *format, const void *value) {
-  const char *repl_string = (const char *)value;
-  char *remstr;
-  int flag = rempart(repl_string);
-  char *buffer;
-
-  switch (flag) {
-  case 1:
-    *remstr = "%c";
-    break;
-  case 2:
-    *remstr = "%n";
-    break;
-  case 3:
-    *remstr = "%s";
-    break;
-  default:
-    printf("error\n");
-  }
-
-  int d = where_to_chan(remstr, repl_string);
-  int i, j;
-
-  for (i = 0; i < d; i++)
-    buffer[i] = format[i] ;
-
-  for (j = 0; j < 2; j++) {
-    buffer[i] = remstr[j];
-    i++;
-  }
-
-  for (j = d + strlen(repl_string); j < strlen(format); j++) {
-
-    buffer[i] = format[j];
-    
-    i++;
-  }
-
-  buffer[i] = '\0';
-
-  return *buffer;
+  return ptr;
 }
 
 // Function usage examples:
 int main(int argc, char *argv[]) {
 
-  const char *formatS = "Hello %s!";
+  const char *formatS = "Hello %s %s!";
   const char *world = "World";
 
-  const char *formatN = "Value: %n";
-  const uint8_t a = 42;
+  const char *formatN = "Value: %n %n";
+  const uint8_t a = 142;
 
-  const char *formatC = "Char: %c";
+  const char *formatC = "Char: %c %c";
   const char c = 'P';
 
   const char *result;
@@ -169,12 +107,10 @@ int main(int argc, char *argv[]) {
   printf("%s\n", result); // should print: Char: P
 
   result = sprintf_m(formatN, (const void *)&a);
-  printf("%s\n", result); // should print: Value: 42
+  printf("%s \n", result); // should print: Value: 42
 
   result = sprintf_m(formatS, (const void *)world);
   printf("%s\n", result); // should print: Hello World!
 
-int d = rempart("Hello %s!");
-printf("%d\n",d);
   return 0;
 }
